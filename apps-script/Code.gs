@@ -1,7 +1,7 @@
 /** @OnlyCurrentDoc */
 
-const WRITE_TOKEN = 'REPLACE_WITH_SAME_TOKEN_AS_FRONTEND';
-const SHEET_NAME = 'Sheet1'; // or your tab name
+const WRITE_TOKEN = 'f59928067e7ba7dfb1b773d6cbddaabe';
+const SHEET_NAME = '掃碼紀錄'; // or your tab name
 
 function doPost(e) {
   try {

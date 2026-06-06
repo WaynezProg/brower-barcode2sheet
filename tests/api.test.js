@@ -17,7 +17,7 @@ describe('submitEntry', () => {
   it('POSTs normalized payload and returns ok response', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ ok: true }),
+      text: async () => JSON.stringify({ ok: true }),
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -45,7 +45,7 @@ describe('submitEntry', () => {
   it('returns error when server responds with ok:false', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ ok: false, error: 'operator required' }),
+      text: async () => JSON.stringify({ ok: false, error: 'operator required' }),
     }));
 
     const result = await submitEntry({

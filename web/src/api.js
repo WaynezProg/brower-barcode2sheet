@@ -27,7 +27,13 @@ export async function submitEntry(entry) {
       body,
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { ok: false, error: '寫入失敗：伺服器回應異常（請確認 Apps Script 已 Deploy）' };
+    }
     if (!data.ok) {
       return { ok: false, error: data.error ?? '寫入失敗' };
     }
