@@ -5,7 +5,7 @@ iPhone Safari 商品輸入工具：掃條碼 / 語音 / 手動輸入 → 確認 
 ## 開發
 
 ```bash
-cp web/config.example.js web/config.js
+cp web/public/config.example.js web/public/config.js
 # 填入 APPS_SCRIPT_URL 與 WRITE_TOKEN
 pnpm install
 pnpm dev

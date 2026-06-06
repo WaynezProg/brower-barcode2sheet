@@ -1,4 +1,5 @@
 node_modules/
 dist/
 web/config.js
+web/public/config.js
 .DS_Store
