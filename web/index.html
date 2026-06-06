@@ -10,7 +10,7 @@
   <body>
     <main id="app" class="app">
       <header class="header">
-        <h1>商品輸入</h1>
+        <h1>商品輸入 <span id="mode-badge" class="mode-badge"></span></h1>
         <p class="operator-display">作業者：<span id="operator-label"></span></p>
       </header>
 
@@ -65,6 +65,7 @@
     </div>
 
     <div id="toast" class="toast hidden" role="status"></div>
+    <div id="flash-overlay" class="flash-overlay hidden"></div>
 
     <script src="config.js"></script>
     <script type="module" src="/src/main.js"></script>

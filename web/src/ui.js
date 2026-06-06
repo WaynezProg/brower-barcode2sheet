@@ -56,3 +56,9 @@ export function readConfirmModal(operator) {
     note: $('confirm-note').value,
   };
 }
+
+export function setModeBadge(mode) {
+  const el = $('mode-badge');
+  el.textContent = mode === 'local' ? '本機' : '雲端';
+  el.className = `mode-badge ${mode}`;
+}
