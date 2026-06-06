@@ -20,6 +20,6 @@ LOCATION=$(curl -s -D - -o /dev/null -X POST "$URL" \
 curl -s "$LOCATION"
 ```
 
-Expected: `{"ok":true}` and a new row in the Sheet.
+Expected: `{"ok":true}` and a new row in the Sheet（掃描時間為 Asia/Taipei）。
 
 若回 `{"ok":false,"error":"Unauthorized"}` → `Code.gs` 的 `WRITE_TOKEN` 與 `web/config.js` 不一致，或改完 Code 後**未重新 Deploy**。

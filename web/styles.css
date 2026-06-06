@@ -118,11 +118,3 @@ input, textarea {
 .toast.hidden { display: none; }
 .toast.success { background: #34c759; }
 .toast.error { background: var(--danger); }
-
-.mode-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: #e8e8ed; }
-.mode-badge.local { background: #d1fae5; color: #065f46; }
-.mode-badge.cloud { background: #dbeafe; color: #1e40af; }
-.flash-overlay { position: fixed; inset: 0; z-index: 400; pointer-events: none; }
-.flash-overlay.hidden { display: none; }
-.flash-overlay.flash-success { background: rgba(52, 199, 89, 0.35); }
-.flash-overlay.flash-error { background: rgba(255, 59, 48, 0.35); }

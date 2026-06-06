@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
-import { localApiPlugin } from './server/vite-plugin-local-api.js';
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/brower-barcode2sheet/' : '/',
@@ -13,12 +12,6 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'web/src'),
     },
-  },
-  plugins: process.env.LOCAL_SERVER ? [localApiPlugin()] : [],
-  server: {
-    host: process.env.LOCAL_SERVER ? '0.0.0.0' : true,
-    // ngrok and other tunnel hostnames
-    allowedHosts: process.env.LOCAL_SERVER ? true : undefined,
   },
   test: {
     environment: 'jsdom',

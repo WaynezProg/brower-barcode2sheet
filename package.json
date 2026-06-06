@@ -4,9 +4,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "local": "LOCAL_SERVER=1 vite",
-    "tunnel": "ngrok http 5173",
-    "diagnose": "node scripts/diagnose-local.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",

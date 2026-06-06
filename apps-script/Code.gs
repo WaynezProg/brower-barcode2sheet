@@ -24,7 +24,7 @@ function doPost(e) {
     }
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-    const scannedAt = new Date().toISOString();
+    const scannedAt = Utilities.formatDate(new Date(), 'Asia/Taipei', "yyyy-MM-dd'T'HH:mm:ss");
     sheet.appendRow([scannedAt, operator, barcode, description, note]);
 
     return jsonResponse({ ok: true });

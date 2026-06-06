@@ -4,12 +4,9 @@ export function createScanner() {
   const reader = new BrowserMultiFormatReader();
   let stream = null;
   let active = false;
-  let paused = false;
-
   async function start(videoEl, onResult, onError) {
     if (active) return;
     active = true;
-    paused = false;
 
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -20,7 +17,6 @@ export function createScanner() {
       await videoEl.play();
 
       reader.decodeFromVideoDevice(undefined, videoEl, (result, err) => {
-        if (paused) return;
         if (result) {
           onResult(result.getText());
         }
@@ -37,7 +33,6 @@ export function createScanner() {
 
   async function stop() {
     active = false;
-    paused = false;
     reader.reset();
     if (stream) {
       stream.getTracks().forEach((t) => t.stop());
@@ -45,13 +40,5 @@ export function createScanner() {
     }
   }
 
-  function pause() {
-    paused = true;
-  }
-
-  function resume() {
-    paused = false;
-  }
-
-  return { start, stop, pause, resume };
+  return { start, stop };
 }
