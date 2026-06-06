@@ -1,4 +1,5 @@
 import { normalizeEntry } from './validation.js';
+import { getMode } from './mode.js';
 
 function getConfig() {
   const cfg = globalThis.APP_CONFIG;
@@ -8,9 +9,41 @@ function getConfig() {
   return cfg;
 }
 
+async function submitLocal(entry, normalized) {
+  const body = JSON.stringify({
+    operator: normalized.operator,
+    barcode: normalized.barcode,
+    description: normalized.description,
+    note: normalized.note,
+  });
+  const response = await fetch('/api/entries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  });
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return { ok: false, error: '寫入失敗：伺服器回應異常' };
+  }
+  if (!data.ok) return { ok: false, error: data.error ?? '寫入失敗' };
+  return { ok: true };
+}
+
 export async function submitEntry(entry) {
-  const { APPS_SCRIPT_URL, WRITE_TOKEN } = getConfig();
   const normalized = normalizeEntry(entry);
+
+  if (getMode() === 'local') {
+    try {
+      return await submitLocal(entry, normalized);
+    } catch (err) {
+      return { ok: false, error: `網路錯誤：${err.message}` };
+    }
+  }
+
+  const { APPS_SCRIPT_URL, WRITE_TOKEN } = getConfig();
 
   const body = JSON.stringify({
     token: WRITE_TOKEN,

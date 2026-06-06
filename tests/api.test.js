@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { submitEntry } from '../web/src/api.js';
 
+vi.mock('../web/src/mode.js', () => ({
+  getMode: vi.fn(() => 'cloud'),
+}));
+
+import { getMode } from '../web/src/mode.js';
+
 describe('submitEntry', () => {
   beforeEach(() => {
     globalThis.APP_CONFIG = {
       APPS_SCRIPT_URL: 'https://example.com/exec',
       WRITE_TOKEN: 'test-token',
     };
+    vi.mocked(getMode).mockReturnValue('cloud');
   });
 
   afterEach(() => {
@@ -70,5 +77,33 @@ describe('submitEntry', () => {
 
     expect(result.ok).toBe(false);
     expect(result.error).toContain('network');
+  });
+
+  it('POSTs to local API when mode is local', async () => {
+    vi.mocked(getMode).mockReturnValue('local');
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () => JSON.stringify({ ok: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await submitEntry({
+      operator: '小明',
+      barcode: '123',
+      description: '商品A',
+      note: '',
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledWith('/api/entries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator: '小明',
+        barcode: '123',
+        description: '商品A',
+        note: '',
+      }),
+    });
   });
 });
