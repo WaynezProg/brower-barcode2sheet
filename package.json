@@ -1,0 +1,20 @@
+{
+  "name": "brower-barcode2sheet",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4",
+    "jsdom": "^26.1.0"
+  },
+  "dependencies": {
+    "@zxing/library": "^0.21.3"
+  }
+}
