@@ -10,7 +10,9 @@ export function printNetworkUrl(port) {
   }
   console.log(`\n  Local:   http://localhost:${port}`);
   for (const ip of ips) {
-    console.log(`  Network: http://${ip}:${port}  ← iPhone bookmark this`);
+    console.log(`  Network: http://${ip}:${port}  ← iPhone (needs firewall allow)`);
   }
-  console.log(`  CSV:     data/entries.csv\n`);
+  console.log(`  Tunnel:  pnpm tunnel  ← iPhone HTTPS if LAN blocked`);
+  console.log(`  CSV:     data/entries.csv`);
+  console.log(`  Diagnose: node scripts/diagnose-local.mjs\n`);
 }

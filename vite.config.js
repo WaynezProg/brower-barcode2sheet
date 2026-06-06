@@ -17,6 +17,8 @@ export default defineConfig({
   plugins: process.env.LOCAL_SERVER ? [localApiPlugin()] : [],
   server: {
     host: process.env.LOCAL_SERVER ? '0.0.0.0' : true,
+    // ngrok and other tunnel hostnames
+    allowedHosts: process.env.LOCAL_SERVER ? true : undefined,
   },
   test: {
     environment: 'jsdom',
