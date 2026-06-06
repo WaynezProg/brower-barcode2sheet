@@ -19,6 +19,17 @@ pnpm test
 3. Settings → Pages → Source: **GitHub Actions**。
 4. Push to `main` → 取得 Pages URL → iPhone Safari 加入書籤。
 
+## 本機掃碼機模式（P2）
+
+```bash
+pnpm local
+# iPhone Safari 開啟 Network URL 書籤
+```
+
+- 連續掃碼、直接寫入 `data/entries.csv`
+- 語音/手動仍要確認
+- GitHub Pages 書籤仍走雲端模式
+
 ## 手動測試（iPhone）
 
 - [ ] 書籤開啟 HTTPS 頁面
