@@ -2,12 +2,70 @@
 <html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>商品輸入</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div id="app"></div>
+    <main id="app" class="app">
+      <header class="header">
+        <h1>商品輸入</h1>
+        <p class="operator-display">作業者：<span id="operator-label"></span></p>
+      </header>
+
+      <section class="card" id="operator-section">
+        <label for="operator-input">作業者名字</label>
+        <input id="operator-input" type="text" placeholder="輸入你的名字" autocomplete="name" />
+      </section>
+
+      <section class="card">
+        <div class="actions">
+          <button type="button" id="scan-btn" class="btn btn-primary">掃描條碼</button>
+          <button type="button" id="voice-btn" class="btn btn-secondary">語音輸入</button>
+        </div>
+        <p class="hint">語音不穩時可直接在下方手動輸入</p>
+
+        <label for="barcode-input">條碼</label>
+        <input id="barcode-input" type="text" inputmode="numeric" />
+
+        <label for="description-input">商品名稱 / 描述</label>
+        <textarea id="description-input" rows="3"></textarea>
+
+        <label for="note-input">備註</label>
+        <input id="note-input" type="text" />
+
+        <button type="button" id="submit-btn" class="btn btn-primary btn-block" disabled>送出</button>
+      </section>
+    </main>
+
+    <!-- Scanner overlay -->
+    <div id="scanner-overlay" class="overlay hidden" aria-hidden="true">
+      <video id="scanner-video" playsinline muted></video>
+      <div class="scanner-frame"></div>
+      <button type="button" id="scanner-cancel" class="btn btn-secondary">取消掃描</button>
+    </div>
+
+    <!-- Confirm modal -->
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h2>確認寫入</h2>
+        <dl class="confirm-list">
+          <dt>掃描時間</dt><dd>送出時自動產生</dd>
+          <dt>作業者</dt><dd id="confirm-operator"></dd>
+          <dt>條碼</dt><dd><input id="confirm-barcode" type="text" /></dd>
+          <dt>商品名稱 / 描述</dt><dd><textarea id="confirm-description" rows="2"></textarea></dd>
+          <dt>備註</dt><dd><input id="confirm-note" type="text" /></dd>
+        </dl>
+        <div class="modal-actions">
+          <button type="button" id="confirm-cancel" class="btn btn-secondary">取消</button>
+          <button type="button" id="confirm-submit" class="btn btn-primary">寫入</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+
     <script src="/config.js"></script>
     <script type="module" src="/src/main.js"></script>
   </body>
