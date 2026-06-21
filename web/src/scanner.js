@@ -12,7 +12,7 @@ const VIDEO_CONSTRAINTS = {
 
 // native BarcodeDetector(Android Chrome / 桌面 Safari 17.4+ 用;iOS Safari 不支援)
 const NATIVE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
-// quagga2 reader 名稱(iOS Safari 等 fallback 用;具 barcode locator,旋轉/縮放較 robust)
+// quagga2 reader 名稱(iOS Safari 等 fallback;具 barcode locator,旋轉/縮放較 robust)
 const QUAGGA_READERS = ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader'];
 
 export function createScanner() {
@@ -20,7 +20,9 @@ export function createScanner() {
   let active = false;
   let rafId = 0;
   let detector = null;
-  let usingQuagga = false;
+  let canvas = null;
+  let ctx = null;
+  let decoding = false;
 
   function stopStream() {
     if (stream) {
@@ -29,6 +31,7 @@ export function createScanner() {
     }
   }
 
+  // native: rAF + BarcodeDetector.detect
   function startNativeLoop(videoEl, observe) {
     const tick = async () => {
       if (!active) return;
@@ -43,58 +46,66 @@ export function createScanner() {
     rafId = requestAnimationFrame(tick);
   }
 
+  // fallback(iOS): rAF + canvas + quagga decodeSingle。
+  // 自己管相機顯示(第一版模式,證明正常),quagga2 只 decode,避開其 LiveStream 在 iOS 黑屏 bug。
+  function startQuaggaLoop(videoEl, observe) {
+    canvas = document.createElement('canvas');
+    ctx = canvas.getContext('2d');
+    const tick = () => {
+      if (!active) return;
+      if (!decoding && videoEl.videoWidth) {
+        decoding = true;
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        Quagga.decodeSingle(
+          {
+            src: canvas.toDataURL('image/jpeg', 0.6),
+            numOfWorkers: 0,
+            inputStream: { size: 800 },
+            locator: { patchSize: 'medium', halfSample: true },
+            decoder: { readers: QUAGGA_READERS },
+            locate: true,
+          },
+          (result) => {
+            observe(result?.codeResult?.code ?? '');
+            decoding = false;
+          },
+        );
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+  }
+
   async function startContinuous(videoEl, { onDetect, onIdle, onError, onReady }) {
     if (active) return;
     active = true;
     const observe = makeObserver(onDetect, onIdle);
 
-    if (typeof BarcodeDetector !== 'undefined') {
-      try {
-        detector = new BarcodeDetector({ formats: NATIVE_FORMATS });
-        stream = await navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS);
-        videoEl.srcObject = stream;
-        await videoEl.play();
-        startNativeLoop(videoEl, observe);
-        onReady?.();
-        return;
-      } catch {
-        detector = null;
-        stopStream();
-      }
-    }
-
-    // fallback: quagga2。onProcessed 每幀觸發(有碼帶 codeResult、無碼空),
-    // 餵給 observer 做邊沿去抖 + onIdle,防重複寫入邏輯與 native 路徑一致。
-    usingQuagga = true;
+    // 兩條路徑都自己 getUserMedia 顯示 video(避開 quagga2 LiveStream 在 iOS 的黑屏 bug)
     try {
-      Quagga.init(
-        {
-          inputStream: {
-            type: 'LiveStream',
-            target: videoEl,
-            constraints: VIDEO_CONSTRAINTS.video,
-          },
-          locator: { patchSize: 'medium', halfSample: true },
-          numOfWorkers: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 0,
-          frequency: 10,
-          decoder: { readers: QUAGGA_READERS },
-          locate: true,
-        },
-        (err) => {
-          if (err) {
-            active = false;
-            onError?.(err);
-            return;
-          }
-          Quagga.onProcessed((result) => observe(result?.codeResult?.code ?? ''));
-          onReady?.();
-        },
-      );
+      stream = await navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS);
+      videoEl.srcObject = stream;
+      await videoEl.play();
     } catch (err) {
       active = false;
       onError?.(err);
       throw err;
     }
+    onReady?.();
+
+    if (typeof BarcodeDetector !== 'undefined') {
+      try {
+        detector = new BarcodeDetector({ formats: NATIVE_FORMATS });
+        startNativeLoop(videoEl, observe);
+        return;
+      } catch {
+        detector = null;
+      }
+    }
+
+    startQuaggaLoop(videoEl, observe);
   }
 
   async function stop() {
@@ -104,15 +115,10 @@ export function createScanner() {
       rafId = 0;
     }
     detector = null;
+    canvas = null;
+    ctx = null;
+    decoding = false;
     stopStream();
-    if (usingQuagga) {
-      try {
-        Quagga.stop();
-      } catch {
-        // 忽略
-      }
-      usingQuagga = false;
-    }
   }
 
   return { startContinuous, stop };
