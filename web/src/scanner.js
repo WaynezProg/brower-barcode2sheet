@@ -114,8 +114,10 @@ export function createScanner() {
         videoEl,
         (result, err) => {
           if (result) observe(result.getText());
-          else if (err && err.name === 'NotFoundException') observe('');
-          else if (err) onError?.(err);
+          // per-frame decode 失敗(NotFoundException / ChecksumException 等)一律忽略;
+          // 無碼幀透過 observe('') 讓 observer 去抖/觸發 onIdle。
+          // 致命錯誤(getUserMedia 失敗等)由下方 catch 處理,不靠 callback。
+          else observe('');
         },
       );
     } catch (err) {
