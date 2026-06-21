@@ -29,6 +29,38 @@ function createZxingReader() {
   return new BrowserMultiFormatReader(hints);
 }
 
+/**
+ * 邊沿去抖 observer:同一條碼只在「進入框」時 onDetect 一次;
+ * 從有碼變連續無碼(2 幀)才 onIdle,用來解除「同碼不再採信」狀態。
+ * 連掃防重複寫入靠這層:條碼不移開只 onDetect 一次 → 只寫一筆;
+ * 移開(onIdle)再掃同碼 → 再 onDetect → 寫第二筆。
+ */
+export function makeObserver(onDetect, onIdle) {
+  const stable = createStableReader(2);
+  let lastEmitted = '';
+  let emptyStreak = 0;
+
+  return (code) => {
+    const text = (code ?? '').trim();
+    if (text) {
+      emptyStreak = 0;
+      const accepted = stable(text);
+      if (accepted && accepted !== lastEmitted) {
+        lastEmitted = accepted;
+        onDetect(accepted);
+      }
+      return;
+    }
+    stable('');
+    emptyStreak += 1;
+    if (emptyStreak >= 2 && lastEmitted) {
+      lastEmitted = '';
+      emptyStreak = 0;
+      onIdle();
+    }
+  };
+}
+
 export function createScanner() {
   const reader = createZxingReader();
   let stream = null;
@@ -43,30 +75,24 @@ export function createScanner() {
     }
   }
 
-  function startNativeLoop(videoEl, emit) {
+  function startNativeLoop(videoEl, observe) {
     const tick = async () => {
       if (!active) return;
       try {
         const codes = await detector.detect(videoEl);
-        if (codes.length > 0) {
-          emit(codes[0].rawValue);
-        }
+        observe(codes[0]?.rawValue ?? '');
       } catch {
-        // 單幀失敗忽略，下一幀再試
+        observe('');
       }
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);
   }
 
-  async function start(videoEl, onResult, onError) {
+  async function startContinuous(videoEl, { onDetect, onIdle, onError }) {
     if (active) return;
     active = true;
-    const emit = createStableReader(2);
-    const onStable = (code) => {
-      const accepted = emit(code);
-      if (accepted) onResult(accepted);
-    };
+    const observe = makeObserver(onDetect, onIdle);
 
     if (typeof BarcodeDetector !== 'undefined') {
       try {
@@ -74,7 +100,7 @@ export function createScanner() {
         stream = await navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS);
         videoEl.srcObject = stream;
         await videoEl.play();
-        startNativeLoop(videoEl, onStable);
+        startNativeLoop(videoEl, observe);
         return;
       } catch {
         detector = null;
@@ -87,10 +113,9 @@ export function createScanner() {
         VIDEO_CONSTRAINTS,
         videoEl,
         (result, err) => {
-          if (result) onStable(result.getText());
-          if (err && err.name !== 'NotFoundException') {
-            onError?.(err);
-          }
+          if (result) observe(result.getText());
+          else if (err && err.name === 'NotFoundException') observe('');
+          else if (err) onError?.(err);
         },
       );
     } catch (err) {
@@ -111,5 +136,5 @@ export function createScanner() {
     stopStream();
   }
 
-  return { start, stop };
+  return { startContinuous, stop };
 }

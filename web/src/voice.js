@@ -1,5 +1,6 @@
 export function createVoiceInput() {
   const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
+  let active = null;
 
   function isSupported() {
     return Boolean(SpeechRecognition);
@@ -21,11 +22,24 @@ export function createVoiceInput() {
       onResult?.(text);
     };
     recognition.onerror = (event) => onError?.(new Error(event.error || '語音辨識失敗'));
-    recognition.onend = () => onEnd?.();
+    recognition.onend = () => {
+      active = null;
+      onEnd?.();
+    };
 
     recognition.start();
+    active = recognition;
     return recognition;
   }
 
-  return { isSupported, start };
+  function stop() {
+    try {
+      active?.stop();
+    } catch {
+      // 忽略重複 stop
+    }
+    active = null;
+  }
+
+  return { isSupported, start, stop };
 }

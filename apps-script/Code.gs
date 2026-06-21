@@ -1,13 +1,23 @@
 /** @OnlyCurrentDoc */
 
-const WRITE_TOKEN = 'f59928067e7ba7dfb1b773d6cbddaabe';
-const SHEET_NAME = '掃碼紀錄'; // or your tab name
+const SHEET_NAME = '掃碼紀錄'; // 你的 tab 名稱
+
+function getToken() {
+  // 從 Script Properties 讀,不寫死在程式碼裡。
+  // 設定方式:Apps Script 編輯器 → 專案設定 → Script Properties → 新增 WRITE_TOKEN
+  return PropertiesService.getScriptProperties().getProperty('WRITE_TOKEN');
+}
 
 function doPost(e) {
   try {
+    const token = getToken();
+    if (!token) {
+      return jsonResponse({ ok: false, error: 'server token not configured' }, 500);
+    }
+
     const payload = JSON.parse(e.postData.contents);
 
-    if (payload.token !== WRITE_TOKEN) {
+    if (payload.token !== token) {
       return jsonResponse({ ok: false, error: 'Unauthorized' }, 403);
     }
 
