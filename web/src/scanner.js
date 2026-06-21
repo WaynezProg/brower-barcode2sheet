@@ -1,9 +1,5 @@
-import {
-  BarcodeFormat,
-  BrowserMultiFormatReader,
-  DecodeHintType,
-} from '@zxing/library';
-import { createStableReader } from './scan-stability.js';
+import * as Quagga from '@ericblade/quagga2';
+import { makeObserver } from './scan-stability.js';
 
 const VIDEO_CONSTRAINTS = {
   video: {
@@ -14,59 +10,17 @@ const VIDEO_CONSTRAINTS = {
   audio: false,
 };
 
+// native BarcodeDetector(Android Chrome / 桌面 Safari 17.4+ 用;iOS Safari 不支援)
 const NATIVE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
-
-function createZxingReader() {
-  const hints = new Map();
-  hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-    BarcodeFormat.EAN_13,
-    BarcodeFormat.EAN_8,
-    BarcodeFormat.UPC_A,
-    BarcodeFormat.UPC_E,
-    BarcodeFormat.CODE_128,
-  ]);
-  hints.set(DecodeHintType.TRY_HARDER, true);
-  return new BrowserMultiFormatReader(hints);
-}
-
-/**
- * 邊沿去抖 observer:同一條碼只在「進入框」時 onDetect 一次;
- * 從有碼變連續無碼(2 幀)才 onIdle,用來解除「同碼不再採信」狀態。
- * 連掃防重複寫入靠這層:條碼不移開只 onDetect 一次 → 只寫一筆;
- * 移開(onIdle)再掃同碼 → 再 onDetect → 寫第二筆。
- */
-export function makeObserver(onDetect, onIdle) {
-  const stable = createStableReader(2);
-  let lastEmitted = '';
-  let emptyStreak = 0;
-
-  return (code) => {
-    const text = (code ?? '').trim();
-    if (text) {
-      emptyStreak = 0;
-      const accepted = stable(text);
-      if (accepted && accepted !== lastEmitted) {
-        lastEmitted = accepted;
-        onDetect(accepted);
-      }
-      return;
-    }
-    stable('');
-    emptyStreak += 1;
-    if (emptyStreak >= 2 && lastEmitted) {
-      lastEmitted = '';
-      emptyStreak = 0;
-      onIdle();
-    }
-  };
-}
+// quagga2 reader 名稱(iOS Safari 等 fallback 用;具 barcode locator,旋轉/縮放較 robust)
+const QUAGGA_READERS = ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader'];
 
 export function createScanner() {
-  const reader = createZxingReader();
   let stream = null;
   let active = false;
   let rafId = 0;
   let detector = null;
+  let usingQuagga = false;
 
   function stopStream() {
     if (stream) {
@@ -108,16 +62,30 @@ export function createScanner() {
       }
     }
 
+    // fallback: quagga2。onProcessed 每幀觸發(有碼帶 codeResult、無碼空),
+    // 餵給 observer 做邊沿去抖 + onIdle,防重複寫入邏輯與 native 路徑一致。
+    usingQuagga = true;
     try {
-      await reader.decodeFromConstraints(
-        VIDEO_CONSTRAINTS,
-        videoEl,
-        (result, err) => {
-          if (result) observe(result.getText());
-          // per-frame decode 失敗(NotFoundException / ChecksumException 等)一律忽略;
-          // 無碼幀透過 observe('') 讓 observer 去抖/觸發 onIdle。
-          // 致命錯誤(getUserMedia 失敗等)由下方 catch 處理,不靠 callback。
-          else observe('');
+      Quagga.init(
+        {
+          inputStream: {
+            type: 'LiveStream',
+            target: videoEl,
+            constraints: VIDEO_CONSTRAINTS.video,
+          },
+          locator: { patchSize: 'medium', halfSample: true },
+          numOfWorkers: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 0,
+          frequency: 10,
+          decoder: { readers: QUAGGA_READERS },
+          locate: true,
+        },
+        (err) => {
+          if (err) {
+            active = false;
+            onError?.(err);
+            return;
+          }
+          Quagga.onProcessed((result) => observe(result?.codeResult?.code ?? ''));
         },
       );
     } catch (err) {
@@ -134,8 +102,15 @@ export function createScanner() {
       rafId = 0;
     }
     detector = null;
-    reader.reset();
     stopStream();
+    if (usingQuagga) {
+      try {
+        Quagga.stop();
+      } catch {
+        // 忽略
+      }
+      usingQuagga = false;
+    }
   }
 
   return { startContinuous, stop };

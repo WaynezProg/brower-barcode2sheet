@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { makeObserver } from '../web/src/scanner.js';
+import { makeObserver } from '../web/src/scan-stability.js';
 
 describe('makeObserver (連掃防重複去抖)', () => {
   it('同一條碼需連續 2 幀才 onDetect 一次,之後同碼不再 onDetect', () => {
