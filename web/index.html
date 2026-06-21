@@ -23,34 +23,30 @@
       </section>
 
       <section class="card">
-        <div class="actions">
-          <button type="button" id="scan-btn" class="btn btn-primary">掃描條碼</button>
-          <button type="button" id="voice-btn" class="btn btn-secondary">語音輸入</button>
-        </div>
-        <p class="hint">語音不穩時可直接在下方手動輸入</p>
-
-        <label for="barcode-input">條碼</label>
-        <input id="barcode-input" type="text" inputmode="numeric" />
-
-        <label for="description-input">商品名稱 / 描述</label>
-        <textarea id="description-input" rows="3"></textarea>
-
-        <label for="note-input">備註</label>
-        <input id="note-input" type="text" />
-
-        <button type="button" id="submit-btn" class="btn btn-primary btn-block" disabled>送出寫入</button>
+        <button type="button" id="start-scan-btn" class="btn btn-primary btn-block">開始連續掃描</button>
+        <p class="hint">相機常駐，掃到即寫入。描述／備註事後在 Google Sheet 補。</p>
+        <h3 class="recent-title">最近掃描</h3>
+        <ul id="recent-list" class="recent-list"></ul>
       </section>
     </main>
 
     <div id="scanner-overlay" class="overlay hidden" aria-hidden="true">
       <video id="scanner-video" playsinline muted></video>
       <div class="scanner-frame"></div>
-      <p class="scanner-hint">將條碼橫向置於框內，保持穩定 1～2 秒</p>
-      <button type="button" id="scanner-cancel" class="btn btn-secondary">取消掃描</button>
+      <p id="scan-status" class="scanner-hint">掃描中…</p>
+      <div class="scanner-controls">
+        <label class="toggle">
+          <input type="checkbox" id="voice-toggle" />
+          <span>語音補描述</span>
+        </label>
+        <button type="button" id="skip-voice-btn" class="btn btn-secondary">跳過語音</button>
+        <button type="button" id="retry-btn" class="btn btn-secondary">重送</button>
+      </div>
+      <button type="button" id="scanner-cancel" class="btn btn-secondary">結束掃描</button>
     </div>
 
     <div id="toast" class="toast hidden" role="status"></div>
-    <p class="version-tag" aria-hidden="true">v1.2 掃碼強化</p>
+    <p class="version-tag" aria-hidden="true">v2.0 連續掃描</p>
 
     <script src="config.js"></script>
     <script type="module" src="/src/main.js"></script>

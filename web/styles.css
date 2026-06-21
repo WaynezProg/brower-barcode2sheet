@@ -44,8 +44,24 @@ input, textarea {
   font-size: 1rem;
 }
 
-.actions { display: flex; gap: 8px; }
 .hint { color: var(--muted); font-size: 0.85rem; margin: 8px 0 0; }
+.recent-title { margin: 16px 0 6px; font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 40vh;
+  overflow-y: auto;
+  font-variant-numeric: tabular-nums;
+}
+.recent-list li {
+  padding: 8px 4px;
+  border-bottom: 1px solid #f0f0f2;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .btn {
   border: none;
@@ -56,8 +72,18 @@ input, textarea {
 }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-secondary { background: #e8e8ed; color: var(--text); }
-.btn-block { width: 100%; margin-top: 16px; }
+.btn-block { width: 100%; margin-top: 0; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+.toggle input { width: auto; padding: 0; }
 
 .overlay {
   position: fixed;
@@ -93,6 +119,19 @@ input, textarea {
   font-size: 0.95rem;
   text-shadow: 0 1px 4px rgba(0,0,0,.6);
 }
+.scanner-controls {
+  position: absolute;
+  top: calc(38% + 22vh);
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+.scanner-controls .toggle { color: #fff; }
+.scanner-controls .btn { padding: 10px 14px; font-size: 0.9rem; }
 #scanner-cancel { position: absolute; bottom: calc(24px + var(--safe-bottom)); }
 
 .version-tag {
