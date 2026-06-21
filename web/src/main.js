@@ -44,14 +44,14 @@ function initScan() {
       await scanner.startContinuous(video, {
         onDetect: continuous.handleDetect,
         onIdle: continuous.handleIdle,
-        onError: () => {
-          showToast('無法開啟相機，請檢查權限', 'error');
+        onError: (err) => {
+          showToast(`相機錯誤：${err?.message || err?.name || '請檢查權限'}`, 'error', 6000);
           continuous.stop();
           overlay.classList.add('hidden');
         },
       });
-    } catch {
-      showToast('無法開啟相機，請檢查權限', 'error');
+    } catch (err) {
+      showToast(`相機錯誤：${err?.message || err?.name || '請檢查權限'}`, 'error', 6000);
       continuous.stop();
       overlay.classList.add('hidden');
     }
