@@ -43,7 +43,7 @@ export function createScanner() {
     rafId = requestAnimationFrame(tick);
   }
 
-  async function startContinuous(videoEl, { onDetect, onIdle, onError }) {
+  async function startContinuous(videoEl, { onDetect, onIdle, onError, onReady }) {
     if (active) return;
     active = true;
     const observe = makeObserver(onDetect, onIdle);
@@ -55,6 +55,7 @@ export function createScanner() {
         videoEl.srcObject = stream;
         await videoEl.play();
         startNativeLoop(videoEl, observe);
+        onReady?.();
         return;
       } catch {
         detector = null;
@@ -86,6 +87,7 @@ export function createScanner() {
             return;
           }
           Quagga.onProcessed((result) => observe(result?.codeResult?.code ?? ''));
+          onReady?.();
         },
       );
     } catch (err) {

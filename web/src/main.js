@@ -44,6 +44,7 @@ function initScan() {
       await scanner.startContinuous(video, {
         onDetect: continuous.handleDetect,
         onIdle: continuous.handleIdle,
+        onReady: () => showToast('掃描就緒，對準條碼', 'success', 1500),
         onError: (err) => {
           showToast(`相機錯誤：${err?.message || err?.name || '請檢查權限'}`, 'error', 6000);
           continuous.stop();
