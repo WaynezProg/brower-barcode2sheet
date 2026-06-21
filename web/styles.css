@@ -73,11 +73,25 @@ input, textarea {
 #scanner-video { width: 100%; max-height: 70vh; object-fit: cover; }
 .scanner-frame {
   position: absolute;
-  width: 70%;
-  height: 30%;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 88%;
+  height: 22%;
   border: 2px solid #fff;
   border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,.4);
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.45);
+}
+.scanner-hint {
+  position: absolute;
+  top: calc(38% + 14vh);
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6);
 }
 #scanner-cancel { position: absolute; bottom: calc(24px + var(--safe-bottom)); }
 
